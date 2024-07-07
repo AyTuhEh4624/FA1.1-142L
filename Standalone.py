@@ -20,9 +20,9 @@ def job(env, name, server, arrival_time, service_time, delays, services, departu
 
 
 # Simulation setup
-def simulate_queue(arrival_times, service_times):
+def simulate_queue(arrival_times, service_times, num_servers):
     env = simpy.Environment()
-    server = simpy.Resource(env, capacity=1)  # Single server
+    server = simpy.Resource(env, capacity=num_servers)  # Multiple servers
     delays, services, departures = [], [], []
 
     for i, arrival_time in enumerate(arrival_times):
@@ -33,37 +33,41 @@ def simulate_queue(arrival_times, service_times):
     return delays, services, departures
 
 
-# Run the simulation
-delays, services, departures = simulate_queue(arrival_times, service_times)
+# Function to print results and plot Gantt chart
+def print_and_plot_results(arrival_times, delays, services, departures, num_servers):
+    # Print the results
+    print(f"\nResults for {num_servers} server(s):")
+    print("Job\tArrival\tDelay\tService\tDeparture")
+    for i in range(len(arrival_times)):
+        print(f"{i + 1}\t{arrival_times[i]}\t{delays[i]}\t{services[i]}\t{departures[i]}")
 
-# Calculate the arrival times and the departure times
-arrivals = arrival_times
-departure_times = departures
+    # Calculate averages
+    average_delay = sum(delays) / len(delays)
+    average_service_time = sum(services) / len(services)
+    average_waiting_time = average_delay + average_service_time
 
-# Print the results
-print("Job\tArrival\tDelay\tService\tDeparture")
-for i in range(len(arrival_times)):
-    print(f"{i + 1}\t{arrivals[i]}\t\t{delays[i]}\t\t{services[i]}\t\t{departure_times[i]}")
+    print(f"\nAverage Delay Time: {average_delay:.2f}")
+    print(f"Average Service Time: {average_service_time:.2f}")
+    print(f"Average Waiting Time: {average_waiting_time:.2f}")
 
-# Calculate averages
-average_delay = sum(delays) / len(delays)
-average_service_time = sum(services) / len(services)
-average_waiting_time = average_delay + average_service_time
+    # Plot the Gantt chart
+    plt.figure(figsize=(10, 6))
+    for i in range(len(arrival_times)):
+        start_time = arrival_times[i] + delays[i]
+        plt.barh(i, services[i], left=start_time, edgecolor='black', color='skyblue')
+        plt.text(start_time + services[i] / 2, i, f'Job {i + 1}', ha='center', va='center')
 
-print(f"\nAverage Delay Time: {average_delay:.2f}")
-print(f"Average Service Time: {average_service_time:.2f}")
-print(f"Average Waiting Time: {average_waiting_time:.2f}")
+    plt.yticks(range(len(arrival_times)), [f'Job {i + 1}' for i in range(len(arrival_times))])
+    plt.xlabel('Time')
+    plt.ylabel('Job')
+    plt.title(f'FIFO Queue Simulation Gantt Chart with {num_servers} Server(s)')
+    plt.grid(True)
+    plt.show()
 
-# Plot the Gantt chart
-plt.figure(figsize=(10, 6))
-for i in range(len(arrival_times)):
-    start_time = arrivals[i] + delays[i]
-    plt.barh(i, services[i], left=start_time, edgecolor='black', color='skyblue')
-    plt.text(start_time + services[i] / 2, i, f'Job {i + 1}', ha='center', va='center')
 
-plt.yticks(range(len(arrival_times)), [f'Job {i + 1}' for i in range(len(arrival_times))])
-plt.xlabel('Time')
-plt.ylabel('Job')
-plt.title('FIFO Queue Simulation Gantt Chart')
-plt.grid(True)
-plt.show()
+# Run the simulation for 1, 2, and 3 servers
+num_servers_list = [1, 2, 3]
+
+for num_servers in num_servers_list:
+    delays, services, departures = simulate_queue(arrival_times, service_times, num_servers)
+    print_and_plot_results(arrival_times, delays, services, departures, num_servers)
