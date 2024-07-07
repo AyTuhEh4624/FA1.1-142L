@@ -39,7 +39,7 @@ def print_and_plot_results(arrival_times, delays, services, departures, num_serv
     print(f"\nResults for {num_servers} server(s):")
     print("Job\tArrival\tDelay\tService\tDeparture")
     for i in range(len(arrival_times)):
-        print(f"{i + 1}\t{arrival_times[i]}\t{delays[i]}\t{services[i]}\t{departures[i]}")
+        print(f"{i + 1}\t{arrival_times[i]}\t\t{delays[i]}\t\t{services[i]}\t\t{departures[i]}")
 
     # Calculate averages
     average_delay = sum(delays) / len(delays)
