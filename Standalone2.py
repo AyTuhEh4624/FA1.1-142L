@@ -1,6 +1,7 @@
 import simpy
 import random
 import matplotlib.pyplot as plt
+from tabulate import tabulate  # Import tabulate for table formatting
 
 # Parameters
 NUM_JOBS = 100
@@ -16,11 +17,12 @@ delay_times = []
 departure_times = []
 
 
-def job(env, name, server):
+def job(env, name, servers):
     arrival_time = env.now
     arrival_times.append(arrival_time)
 
-    with server.request() as request:
+    # Request one of the two servers
+    with servers.request() as request:
         yield request
         delay_time = env.now - arrival_time
         delay_times.append(delay_time)
@@ -34,11 +36,11 @@ def job(env, name, server):
 
 
 def setup(env, num_jobs):
-    server = simpy.Resource(env, capacity=1)
+    servers = simpy.Resource(env, capacity=2)
     for i in range(num_jobs):
         interarrival_time = random.randint(ARRIVAL_MIN, ARRIVAL_MAX)
         yield env.timeout(interarrival_time)
-        env.process(job(env, f'Job {i}', server))
+        env.process(job(env, f'Job {i}', servers))
 
 
 # Simulation
@@ -55,10 +57,16 @@ total_time = max(departure_times)
 # Display results
 print(f'Average Delay: {average_delay:.2f} time units')
 print(f'Total Time to Finish All Jobs: {total_time:.2f} time units')
-print("Job\tArrival Time\tDelay Time\t\tService Time\tDeparture Time")
-for i in range(NUM_JOBS):
-    print(f"{i + 1}\t\t{arrival_times[i]} \t\t{delay_times[i]}          \t{service_times[i]}\t\t\t{departure_times[i]}")
 
+# Format job details into a table
+job_details = []
+for i in range(NUM_JOBS):
+    job_details.append([i + 1, arrival_times[i], delay_times[i], service_times[i], departure_times[i]])
+
+# Print table using tabulate
+headers = ["Job", "Arrival Time", "Delay Time", "Service Time", "Departure Time"]
+print("\nJob Details:")
+print(tabulate(job_details, headers=headers, tablefmt="grid"))
 
 # Gantt Chart
 fig, gnt = plt.subplots()
@@ -80,5 +88,3 @@ plt.xlabel('Job')
 plt.ylabel('Delay Time (units)')
 plt.title('Delay Time per Request')
 plt.show()
-
-
